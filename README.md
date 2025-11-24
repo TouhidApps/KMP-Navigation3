@@ -9,6 +9,7 @@ KMP-Navigation3 with animation and organized implementation. Also included jetpa
 - New full fresh compose project support
 - Well arranged navigation route
 - Data/Object transfer to route
+- BackHandler
 
 ScreenShot-
 
@@ -24,6 +25,7 @@ ScreenShot-
 - Data/Object transfer to route
 - Landscape orientation support (Split screen)
 - List and detail view support
+- Alert dialog support
 
 ScreenShot-
 
