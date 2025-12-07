@@ -5,7 +5,7 @@ KMP-Navigation3 with animation and organized implementation. Also included jetpa
 
 ### Features-
 
-- Old xml based project support
+- Old xml based project (Add compose & nav3 in new activity and navigate from xml to compose and back navigation)
 - New full fresh compose project support
 - Well arranged navigation route
 - Data/Object transfer to route
