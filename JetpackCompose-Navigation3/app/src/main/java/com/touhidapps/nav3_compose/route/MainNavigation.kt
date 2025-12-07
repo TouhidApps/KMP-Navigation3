@@ -2,6 +2,7 @@ package com.touhidapps.nav3_compose.route
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
@@ -9,7 +10,9 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Modifier
+import androidx.navigation3.runtime.NavBackStack
 import androidx.navigation3.runtime.NavKey
 import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.runtime.rememberNavBackStack
@@ -26,7 +29,7 @@ import kotlinx.serialization.modules.polymorphic
 val config = SavedStateConfiguration {
     serializersModule = SerializersModule {
         polymorphic(NavKey::class) {
-            subclass(Route.AppHome::class, Route.AppHome.serializer())
+          //  subclass(Route.AppHome::class, Route.AppHome.serializer())
             subclass(Route.Home::class, Route.Home.serializer())
             subclass(Route.NameScreen::class, Route.NameScreen.serializer())
             subclass(Route.DetailScreen::class, Route.DetailScreen.serializer())
@@ -34,6 +37,10 @@ val config = SavedStateConfiguration {
             subclass(Route.Incorrect::class, Route.Incorrect.serializer())
         }
     }
+}
+
+val LocalNavigator = staticCompositionLocalOf<(Route) -> Unit> {
+    error("Not provided")
 }
 
 @Composable
@@ -52,28 +59,6 @@ fun MainNavigation(
         }
     }
 
-    fun doRoute(route: Route) {
-        when(route) {
-            is Route.Back -> {
-                if (backStack.isNotEmpty()) {
-                    backStack.removeLastOrNull()
-                }
-            }
-            is Route.Home -> {
-                if (backStack.isNotEmpty()) {
-                    backStack.removeAll { it !is Route.Home }
-                }
-            }
-            is Route.AppHome -> {
-                finishNavActivity(route.msg)
-            }
-            else -> {
-                if (!backStack.contains(route)) {
-                    backStack.add(route)
-                }
-            }
-        }
-    }
 
     /**
      * BackHandler got priority if onBack and BackHandler both applied, BackHandler is not necessary for only compose single activity app
@@ -101,7 +86,8 @@ fun MainNavigation(
                     val dispatchOwner = rememberNavigationEventDispatcherOwner(enabled = true, parent = null)
 
                     CompositionLocalProvider(
-                        LocalNavigationEventDispatcherOwner provides dispatchOwner
+                        LocalNavigationEventDispatcherOwner provides dispatchOwner,
+                        LocalNavigator provides { route -> backStack.toRoute(route) { finishNavActivity(it) } }
                     ) {
                         NavDisplay(
                             backStack = backStack,
@@ -120,20 +106,15 @@ fun MainNavigation(
 //                                }
                             },
                             entryProvider = entryProvider {
+                              //  entry<Route.AppHome> { Box() {} }
                                 entry<Route.Home> { key -> // can pass data also if you use Home class
-                                    HomeScreen(key.data) { route ->
-                                        doRoute(route)
-                                    }
+                                    HomeScreen(key.data)
                                 }
                                 entry<Route.NameScreen> { key ->
-                                    NameScreen(routeDataName = key.name) { route ->
-                                        doRoute(route)
-                                    }
+                                    NameScreen(routeDataName = key.name)
                                 }
                                 entry<Route.DetailScreen> { key ->
-                                    DetailScreen(routeData = key.data) { route ->
-                                        doRoute(route)
-                                    }
+                                    DetailScreen(routeData = key.data)
                                 }
                             }
                         )
@@ -143,4 +124,46 @@ fun MainNavigation(
         }
     }
 
+}
+
+
+fun NavBackStack<NavKey>.toRoute(route: Route, finishNavActivity: (message: String?) -> Unit) {
+//fun NavBackStack<NavKey>.toRoute(route: Route) {
+    val backStack = this
+    when(route) {
+        is Route.Back -> {
+            if (backStack.isNotEmpty()) {
+                backStack.removeLastOrNull()
+            }
+        }
+        is Route.AppHome -> {
+            finishNavActivity("Finished compose activity")
+        }
+        is Route.Home -> {
+            if (backStack.isNotEmpty()) {
+                backStack.removeAll {
+                    it !is Route.Home // when class must use is
+//                    it != Route.Home
+                }
+            }
+        }
+        else -> {
+            if (!backStack.contains(route)) {
+                backStack.add(route)
+            }
+        }
+    }
+}
+
+/**
+ * Ex. Use in Nav drawer -
+ * if (backStack.isItHome()) {
+ * Set Hamburger IconButton
+ * } else {
+ * Set Back Arrow IconButton
+ * }
+ */
+fun NavBackStack<NavKey>.isItHome(): Boolean {
+    val backStack = this
+    return backStack.size == 1 && backStack.first() == Route.Home
 }

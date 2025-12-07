@@ -9,13 +9,16 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
+import com.touhidapps.nav3_compose.route.LocalNavigator
 import com.touhidapps.nav3_compose.route.Route
 
 @Composable
 fun HomeScreen(
-    routeData: Route.Home.Data? = null,
-    route: (Route) -> Unit
+    routeData: Route.Home.Data? = null
 ) {
+
+    val navigate = LocalNavigator.current // use it inside CompositionLocalProvider
+
     Column(
         modifier = Modifier.fillMaxSize().background(color = Color.Gray)
     ) {
@@ -24,7 +27,7 @@ fun HomeScreen(
         Text(text = "Data from XML Activity: ${routeData?.userData?.userName ?: ""}")
         Text(text = "Data from XML Activity: ${routeData?.userData?.userPhone ?: ""}")
         Button(onClick = {
-            route(Route.NameScreen(name = "Touhid"))
+            navigate(Route.NameScreen(name = "Touhid"))
         }) {
             Text(text = "Go to Name")
         }
@@ -34,7 +37,5 @@ fun HomeScreen(
 @Preview
 @Composable
 fun HomeScreenPreview() {
-    HomeScreen() {
-
-    }
+    HomeScreen()
 }

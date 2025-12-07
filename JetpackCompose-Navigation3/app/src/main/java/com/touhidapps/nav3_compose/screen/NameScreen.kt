@@ -11,11 +11,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import com.touhidapps.nav3_compose.model.UserData
+import com.touhidapps.nav3_compose.route.LocalNavigator
 import com.touhidapps.nav3_compose.route.Route
 import kotlin.random.Random
 
 @Composable
-fun NameScreen(routeDataName: String? = null, route: (Route) -> Unit) {
+fun NameScreen(routeDataName: String? = null) {
+
+    val navigate = LocalNavigator.current // use it inside CompositionLocalProvider
+
     Column(
         modifier = Modifier.fillMaxSize().background(color = Color.Red)
     ) {
@@ -31,7 +35,7 @@ fun NameScreen(routeDataName: String? = null, route: (Route) -> Unit) {
                 )
             )
 
-            route(Route.DetailScreen(data))
+            navigate(Route.DetailScreen(data))
 
         }) {
             Text(text = "Go to Detail")
@@ -42,7 +46,5 @@ fun NameScreen(routeDataName: String? = null, route: (Route) -> Unit) {
 @Preview
 @Composable
 fun NameScreenPreview() {
-    NameScreen() {
-
-    }
+    NameScreen()
 }
