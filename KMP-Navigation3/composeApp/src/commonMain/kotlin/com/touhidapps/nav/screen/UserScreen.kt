@@ -9,21 +9,24 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import com.touhidapps.nav.model.UserData
+import com.touhidapps.nav.nav.LocalNavigator
 import com.touhidapps.nav.nav.Route
+import org.jetbrains.compose.ui.tooling.preview.Preview
 import kotlin.random.Random
 
-
+@Preview(showBackground = true)
 @Composable
 fun UserScreen(
-    routeDataName: String? = null,
-    route: (Route) -> Unit
+    routeDataName: String? = null
 ) {
+
+    val navigate = LocalNavigator.current
 
     Column(modifier = Modifier.fillMaxSize().background(color = Color.Red)) {
         Text("User Screen (Screen 2)")
         Text("User Name: ${routeDataName}")
         Button(onClick = {
-            route(Route.Back)
+            navigate(Route.Back)
         }) {
             Text(text = "Back")
         }
@@ -33,7 +36,7 @@ fun UserScreen(
                 userData = UserData(userName = "Touhid", userPhone = "01213"),
                 randomId = Random.nextInt(1000, 5000)
             )
-            route(Route.UserDetail(data = r))
+            navigate(Route.UserDetail(data = r))
 
         }) {
             Text(text = "Next")

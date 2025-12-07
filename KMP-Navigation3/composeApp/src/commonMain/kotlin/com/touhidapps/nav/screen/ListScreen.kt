@@ -13,10 +13,15 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.touhidapps.nav.nav.LocalNavigator
 import com.touhidapps.nav.nav.Route
+import org.jetbrains.compose.ui.tooling.preview.Preview
 
+@Preview(showBackground = true)
 @Composable
-fun ListScreen(route: (Route) -> Unit) {
+fun ListScreen() {
+
+    val navigate = LocalNavigator.current
 
     val flowerNames = listOf<String>(
         "Rose",
@@ -44,7 +49,7 @@ fun ListScreen(route: (Route) -> Unit) {
     Column {
         Text(text = "List")
         Button(onClick = {
-            route(Route.Back)
+            navigate(Route.Back)
         }) {
             Text("Back")
         }
@@ -57,14 +62,14 @@ fun ListScreen(route: (Route) -> Unit) {
                 Text(
                     item,
                     modifier = Modifier.clickable(enabled = true, onClick = {
-                        route(Route.ListDetail(item))
+                        navigate(Route.ListDetail(item))
                     }).padding(8.dp).fillMaxWidth()
                 )
             }
         }
 
         Button(onClick = {
-            route(Route.Back)
+            navigate(Route.Back)
         }) {
             Text("Back")
         }

@@ -26,11 +26,13 @@ import androidx.compose.material3.adaptive.navigation3.rememberListDetailSceneSt
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.DialogProperties
+import androidx.navigation3.runtime.NavBackStack
 import androidx.navigation3.runtime.NavKey
 import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.runtime.rememberNavBackStack
@@ -60,31 +62,15 @@ val config = SavedStateConfiguration {
     }
 }
 
+val LocalNavigator = staticCompositionLocalOf<(Route) -> Unit> {
+    error("Not provided")
+}
+
 @OptIn(ExperimentalMaterial3AdaptiveApi::class, ExperimentalComposeUiApi::class)
 @Composable
 fun MainNavigation() {
 
     val backStack = rememberNavBackStack(config, Route.Home)
-
-    fun doRoute(route: Route) {
-        when(route) {
-            is Route.Back -> {
-                if (backStack.isNotEmpty()) {
-                    backStack.removeLastOrNull()
-                }
-            }
-            is Route.Home -> {
-                if (backStack.isNotEmpty()) {
-                    backStack.removeAll { it != Route.Home }
-                }
-            }
-            else -> {
-                if (!backStack.contains(route)) {
-                    backStack.add(route)
-                }
-            }
-        }
-    }
 
     // Override the defaults so that there isn't a horizontal space between the panes.
     // See b/418201867
@@ -112,12 +98,17 @@ fun MainNavigation() {
             Scaffold { paddingValues ->
                 Box(modifier = Modifier.padding(paddingValues)) {
 
-                    CompositionLocalProvider() {
+                    CompositionLocalProvider(
+                        LocalNavigator provides { route -> backStack.toRoute(route) }
+                    ) {
+
+                        val navigate = LocalNavigator.current // use it inside CompositionLocalProvider
+
                         NavDisplay(
                             backStack = backStack,
                             sceneStrategy = strategy,
                             onBack = {
-                                doRoute(Route.Back)
+                                navigate(Route.Back)
                             },
                             // In order to add the `ViewModelStoreNavEntryDecorator` (see comment below for why)
                             // we also need to add the default `NavEntryDecorator`s as well. These provide
@@ -132,18 +123,14 @@ fun MainNavigation() {
                                 entry<Route.Home>(
                                     metadata = TwoPaneScene.twoPane() // (Landscape) After clicking a button from home
                                 ) { key ->
-                                    HomeScreen() { route ->
-                                        doRoute(route)
-                                    }
+                                    HomeScreen()
                                 }
 
                                 entry<Route.User>(
                                     metadata = TwoPaneScene.twoPane()
                                 ) { key ->
 
-                                    UserScreen(routeDataName = key.name) { route ->
-                                        doRoute(route)
-                                    }
+                                    UserScreen(routeDataName = key.name)
 
                                 }
 
@@ -151,9 +138,7 @@ fun MainNavigation() {
                                     // To use multiple metadata use + sign
                                     metadata = TwoPaneScene.twoPane() + navAnimation
                                 ) { key ->
-                                    UserDetailScreen(routeData = key.data) { route ->
-                                        doRoute(route)
-                                    }
+                                    UserDetailScreen(routeData = key.data)
                                 }
 
                                 entry<Route.List>(
@@ -163,17 +148,13 @@ fun MainNavigation() {
                                         }
                                     )
                                 ) { key ->
-                                    ListScreen() { route ->
-                                        doRoute(route)
-                                    }
+                                    ListScreen()
                                 }
 
                                 entry<Route.ListDetail>(
                                     metadata = ListDetailSceneStrategy.detailPane()
                                 ) { key ->
-                                    ListDetailScreen(key.flowerName) { route ->
-                                        doRoute(route)
-                                    }
+                                    ListDetailScreen(key.flowerName)
                                 }
 
                                 entry<Route.MyDialog>(
@@ -189,7 +170,7 @@ fun MainNavigation() {
                                     ) {
                                         Text("This is an alert")
                                         Button(onClick = {
-                                            doRoute(Route.Back)
+                                            navigate(Route.Back)
                                         }) {
                                             Text("Done")
                                         }
@@ -227,10 +208,39 @@ fun MainNavigation() {
 
 }
 
+fun NavBackStack<NavKey>.toRoute(route: Route) {
+    val backStack = this
+    when(route) {
+        is Route.Back -> {
+            if (backStack.isNotEmpty()) {
+                backStack.removeLastOrNull()
+            }
+        }
+        is Route.Home -> {
+            if (backStack.isNotEmpty()) {
+                backStack.removeAll { it != Route.Home }
+            }
+        }
+        else -> {
+            if (!backStack.contains(route)) {
+                backStack.add(route)
+            }
+        }
+    }
+}
 
-
-
-
+/**
+ * Ex. Use in Nav drawer -
+ * if (backStack.isItHome()) {
+ * Set Hamburger IconButton
+ * } else {
+ * Set Back Arrow IconButton
+ * }
+ */
+fun NavBackStack<NavKey>.isItHome(): Boolean {
+    val backStack = this
+    return backStack.size == 1 && backStack.first() == Route.Home
+}
 
 
 

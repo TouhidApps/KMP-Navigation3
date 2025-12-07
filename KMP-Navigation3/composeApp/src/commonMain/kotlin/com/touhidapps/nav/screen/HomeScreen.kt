@@ -9,10 +9,15 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.touhidapps.nav.nav.LocalNavigator
 import com.touhidapps.nav.nav.Route
+import org.jetbrains.compose.ui.tooling.preview.Preview
 
+@Preview(showBackground = true)
 @Composable
-fun HomeScreen(route: (Route) -> Unit) {
+fun HomeScreen() {
+
+    val navigate = LocalNavigator.current
 
     Column(
         modifier = Modifier.fillMaxSize(),
@@ -20,17 +25,17 @@ fun HomeScreen(route: (Route) -> Unit) {
     ) {
         Text(text = "HOME - Navigate With Navigation3", modifier = Modifier.padding(10.dp))
         Button(onClick = {
-            route(Route.User(name = "Touhid"))
+            navigate(Route.User(name = "Touhid"))
         }) {
             Text("Basic Nav ->")
         }
         Button(onClick = {
-            route(Route.List)
+            navigate(Route.List)
         }) {
             Text("List Detail (Landscape) ->")
         }
         Button(onClick = {
-            route(Route.MyDialog)
+            navigate(Route.MyDialog)
         }) {
             Text("Alert Dialog ->")
         }
