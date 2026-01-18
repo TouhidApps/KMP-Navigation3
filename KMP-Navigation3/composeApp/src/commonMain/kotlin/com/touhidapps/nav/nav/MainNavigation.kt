@@ -31,6 +31,7 @@ import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.runtime.rememberNavBackStack
 import androidx.navigation3.scene.DialogSceneStrategy
 import androidx.navigation3.ui.NavDisplay
+import com.touhidapps.nav.screen.alertEntry
 import com.touhidapps.nav.screen.homeEntry
 import com.touhidapps.nav.screen.listDetailEntry
 import com.touhidapps.nav.screen.listEntry
@@ -86,27 +87,7 @@ fun MainNavigation() {
                                 userDetailEntry()
                                 listEntry()
                                 listDetailEntry()
-
-                                entry<Route.MyDialog>(
-                                    metadata = DialogSceneStrategy.dialog(
-                                        DialogProperties(
-                                            dismissOnBackPress = true,
-                                            dismissOnClickOutside = false,
-                                        )
-                                    )
-                                ) { key ->
-                                    Column(
-                                        modifier = Modifier.background(color = Color.White)
-                                    ) {
-                                        Text("This is an alert")
-                                        Button(onClick = {
-                                            env.navigate(Route.Back)
-                                        }) {
-                                            Text("Done")
-                                        }
-                                    }
-                                }
-
+                                alertEntry()
 
                             },
                             transitionSpec = {
