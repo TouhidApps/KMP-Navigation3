@@ -10,18 +10,38 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Button
 import androidx.compose.material3.Text
+import androidx.compose.material3.adaptive.ExperimentalMaterial3AdaptiveApi
+import androidx.compose.material3.adaptive.navigation3.ListDetailSceneStrategy
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.touhidapps.nav.nav.LocalNavigator
+import androidx.navigation3.runtime.EntryProviderScope
+import androidx.navigation3.runtime.NavKey
 import com.touhidapps.nav.nav.Route
+import com.touhidapps.nav.nav.rememberScreenEnv
 import org.jetbrains.compose.ui.tooling.preview.Preview
+
+@OptIn(ExperimentalMaterial3AdaptiveApi::class)
+fun EntryProviderScope<NavKey>.listEntry() {
+    entry<Route.List>(
+        metadata = ListDetailSceneStrategy.listPane(
+            detailPlaceholder = {
+                Text("Choose an item from the list")
+            }
+        )
+    ) { key ->
+
+        ListScreen()
+
+    }
+
+}
 
 @Preview(showBackground = true)
 @Composable
 fun ListScreen() {
 
-    val navigate = LocalNavigator.current
+    val env = rememberScreenEnv()
 
     val flowerNames = listOf<String>(
         "Rose",
@@ -49,7 +69,7 @@ fun ListScreen() {
     Column {
         Text(text = "List")
         Button(onClick = {
-            navigate(Route.Back)
+            env.navigate(Route.Back)
         }) {
             Text("Back")
         }
@@ -62,14 +82,14 @@ fun ListScreen() {
                 Text(
                     item,
                     modifier = Modifier.clickable(enabled = true, onClick = {
-                        navigate(Route.ListDetail(item))
+                        env.navigate(Route.ListDetail(item))
                     }).padding(8.dp).fillMaxWidth()
                 )
             }
         }
 
         Button(onClick = {
-            navigate(Route.Back)
+            env.navigate(Route.Back)
         }) {
             Text("Back")
         }

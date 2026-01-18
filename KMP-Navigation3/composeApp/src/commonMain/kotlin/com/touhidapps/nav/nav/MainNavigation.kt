@@ -1,12 +1,7 @@
 package com.touhidapps.nav.nav
 
-import androidx.compose.animation.EnterTransition
-import androidx.compose.animation.ExitTransition
-import androidx.compose.animation.core.tween
 import androidx.compose.animation.slideInHorizontally
-import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutHorizontally
-import androidx.compose.animation.slideOutVertically
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -21,12 +16,10 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.adaptive.ExperimentalMaterial3AdaptiveApi
 import androidx.compose.material3.adaptive.currentWindowAdaptiveInfo
 import androidx.compose.material3.adaptive.layout.calculatePaneScaffoldDirective
-import androidx.compose.material3.adaptive.navigation3.ListDetailSceneStrategy
 import androidx.compose.material3.adaptive.navigation3.rememberListDetailSceneStrategy
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -38,33 +31,12 @@ import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.runtime.rememberNavBackStack
 import androidx.navigation3.scene.DialogSceneStrategy
 import androidx.navigation3.ui.NavDisplay
-import androidx.savedstate.serialization.SavedStateConfiguration
-import com.touhidapps.nav.screen.HomeScreen
-import com.touhidapps.nav.screen.ListDetailScreen
-import com.touhidapps.nav.screen.ListScreen
-import com.touhidapps.nav.screen.UserDetailScreen
-import com.touhidapps.nav.screen.UserScreen
-import kotlinx.serialization.modules.SerializersModule
-import kotlinx.serialization.modules.polymorphic
+import com.touhidapps.nav.screen.homeEntry
+import com.touhidapps.nav.screen.listDetailEntry
+import com.touhidapps.nav.screen.listEntry
+import com.touhidapps.nav.screen.userDetailEntry
+import com.touhidapps.nav.screen.userEntry
 
-
-val config = SavedStateConfiguration {
-    serializersModule = SerializersModule {
-        polymorphic(NavKey::class) {
-            subclass(Route.Home::class, Route.Home.serializer())
-            subclass(Route.User::class, Route.User.serializer())
-            subclass(Route.UserDetail::class, Route.UserDetail.serializer())
-            subclass(Route.List::class, Route.List.serializer())
-            subclass(Route.ListDetail::class, Route.ListDetail.serializer())
-            subclass(Route.MyDialog::class, Route.MyDialog.serializer())
-            subclass(Route.Back::class, Route.Back.serializer())
-        }
-    }
-}
-
-val LocalNavigator = staticCompositionLocalOf<(Route) -> Unit> {
-    error("Not provided")
-}
 
 @OptIn(ExperimentalMaterial3AdaptiveApi::class, ExperimentalComposeUiApi::class)
 @Composable
@@ -82,17 +54,6 @@ fun MainNavigation() {
     // First try 2 panel strategy if doesn't support use ListDetail Strategy if it also doesn't support automatically use SinglePaneSceneStrategy
     val strategy = rememberTwoPaneSceneStrategy<NavKey>() then rememberListDetailSceneStrategy<NavKey>(directive = directive) then remember { DialogSceneStrategy<NavKey>() }
 
-    val navAnimation = NavDisplay.transitionSpec {
-        // Slide new content up, keeping the old content in place underneath
-        slideInVertically(initialOffsetY = { it }, animationSpec = tween(1000)) togetherWith ExitTransition.KeepUntilTransitionsFinished
-    } + NavDisplay.popTransitionSpec {
-        // Slide old content down, revealing the new content in place underneath
-        EnterTransition.None togetherWith slideOutVertically(targetOffsetY = { it }, animationSpec = tween(1000))
-    } + NavDisplay.predictivePopTransitionSpec {
-        // Slide old content down, revealing the new content in place underneath
-        EnterTransition.None togetherWith slideOutVertically(targetOffsetY = { it }, animationSpec = tween(1000))
-    }
-
     MaterialTheme {
         Surface(modifier = Modifier.fillMaxSize()) {
             Scaffold { paddingValues ->
@@ -102,13 +63,13 @@ fun MainNavigation() {
                         LocalNavigator provides { route -> backStack.toRoute(route) }
                     ) {
 
-                        val navigate = LocalNavigator.current // use it inside CompositionLocalProvider
+                        val env = rememberScreenEnv() // use it inside CompositionLocalProvider
 
                         NavDisplay(
                             backStack = backStack,
                             sceneStrategy = strategy,
                             onBack = {
-                                navigate(Route.Back)
+                                env.navigate(Route.Back)
                             },
                             // In order to add the `ViewModelStoreNavEntryDecorator` (see comment below for why)
                             // we also need to add the default `NavEntryDecorator`s as well. These provide
@@ -120,42 +81,11 @@ fun MainNavigation() {
                             //                    ),
                             entryProvider = entryProvider {
 
-                                entry<Route.Home>(
-                                    metadata = TwoPaneScene.twoPane() // (Landscape) After clicking a button from home
-                                ) { key ->
-                                    HomeScreen()
-                                }
-
-                                entry<Route.User>(
-                                    metadata = TwoPaneScene.twoPane()
-                                ) { key ->
-
-                                    UserScreen(routeDataName = key.name)
-
-                                }
-
-                                entry<Route.UserDetail>(
-                                    // To use multiple metadata use + sign
-                                    metadata = TwoPaneScene.twoPane() + navAnimation
-                                ) { key ->
-                                    UserDetailScreen(routeData = key.data)
-                                }
-
-                                entry<Route.List>(
-                                    metadata = ListDetailSceneStrategy.listPane(
-                                        detailPlaceholder = {
-                                            Text("Choose an item from the list")
-                                        }
-                                    )
-                                ) { key ->
-                                    ListScreen()
-                                }
-
-                                entry<Route.ListDetail>(
-                                    metadata = ListDetailSceneStrategy.detailPane()
-                                ) { key ->
-                                    ListDetailScreen(key.flowerName)
-                                }
+                                homeEntry()
+                                userEntry()
+                                userDetailEntry()
+                                listEntry()
+                                listDetailEntry()
 
                                 entry<Route.MyDialog>(
                                     metadata = DialogSceneStrategy.dialog(
@@ -170,7 +100,7 @@ fun MainNavigation() {
                                     ) {
                                         Text("This is an alert")
                                         Button(onClick = {
-                                            navigate(Route.Back)
+                                            env.navigate(Route.Back)
                                         }) {
                                             Text("Done")
                                         }
