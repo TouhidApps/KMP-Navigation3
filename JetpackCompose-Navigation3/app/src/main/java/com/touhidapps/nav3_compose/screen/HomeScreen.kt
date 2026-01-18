@@ -9,8 +9,22 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.navigation3.runtime.EntryProviderScope
+import androidx.navigation3.runtime.NavKey
 import com.touhidapps.nav3_compose.route.LocalNavigator
 import com.touhidapps.nav3_compose.route.Route
+
+fun EntryProviderScope<NavKey>.homeEntry() {
+
+    //  entry<Route.AppHome> { Box() {} }
+
+    entry<Route.Home>() { key -> // can pass data also if you use Home class
+
+        HomeScreen(key.data)
+
+    }
+
+}
 
 @Composable
 fun HomeScreen(

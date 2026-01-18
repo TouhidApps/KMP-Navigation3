@@ -10,10 +10,22 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.navigation3.runtime.EntryProviderScope
+import androidx.navigation3.runtime.NavKey
 import com.touhidapps.nav3_compose.model.UserData
 import com.touhidapps.nav3_compose.route.LocalNavigator
 import com.touhidapps.nav3_compose.route.Route
 import kotlin.random.Random
+
+fun EntryProviderScope<NavKey>.nameEntry() {
+
+    entry<Route.NameScreen>() { key -> // can pass data also if you use Home class
+
+        NameScreen(routeDataName = key.name)
+
+    }
+
+}
 
 @Composable
 fun NameScreen(routeDataName: String? = null) {
