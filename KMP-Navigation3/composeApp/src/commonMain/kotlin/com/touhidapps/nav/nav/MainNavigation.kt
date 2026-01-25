@@ -31,6 +31,7 @@ import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.runtime.rememberNavBackStack
 import androidx.navigation3.scene.DialogSceneStrategy
 import androidx.navigation3.ui.NavDisplay
+import com.touhidapps.nav.screen.HomeScreen
 import com.touhidapps.nav.screen.alertEntry
 import com.touhidapps.nav.screen.homeEntry
 import com.touhidapps.nav.screen.listDetailEntry
@@ -52,19 +53,24 @@ fun MainNavigation() {
         calculatePaneScaffoldDirective(windowAdaptiveInfo).copy(horizontalPartitionSpacerSize = 0.dp)
     }
 
-    // First try 2 panel strategy if doesn't support use ListDetail Strategy if it also doesn't support automatically use SinglePaneSceneStrategy
-    val strategy = rememberTwoPaneSceneStrategy<NavKey>() then rememberListDetailSceneStrategy<NavKey>(directive = directive) then remember { DialogSceneStrategy<NavKey>() }
+    // First try 2 panel strategy _if doesn't support use ListDetail Strategy if it also doesn't support automatically use SinglePaneSceneStrategy
+    val strategy =
+        rememberTwoPaneSceneStrategy<NavKey>() then rememberListDetailSceneStrategy<NavKey>(
+            directive = directive
+        ) then remember { DialogSceneStrategy<NavKey>() }
 
     MaterialTheme {
-        Surface(modifier = Modifier.fillMaxSize()) {
-            Scaffold { paddingValues ->
-                Box(modifier = Modifier.padding(paddingValues)) {
+        CompositionLocalProvider(
+            LocalNavigator provides { route -> backStack.toRoute(route) }
+        ) {
 
-                    CompositionLocalProvider(
-                        LocalNavigator provides { route -> backStack.toRoute(route) }
-                    ) {
+            val env = rememberScreenEnv() // use it inside CompositionLocalProvider
 
-                        val env = rememberScreenEnv() // use it inside CompositionLocalProvider
+
+            Surface(modifier = Modifier.fillMaxSize()) {
+                Scaffold { paddingValues ->
+                    Box(modifier = Modifier.padding(paddingValues)) {
+
 
                         NavDisplay(
                             backStack = backStack,
@@ -109,48 +115,12 @@ fun MainNavigation() {
                     }
 
 
-
                 }
             }
         }
     }
 
 
-
-}
-
-fun NavBackStack<NavKey>.toRoute(route: Route) {
-    val backStack = this
-    when(route) {
-        is Route.Back -> {
-            if (backStack.isNotEmpty()) {
-                backStack.removeLastOrNull()
-            }
-        }
-        is Route.Home -> {
-            if (backStack.isNotEmpty()) {
-                backStack.removeAll { it != Route.Home }
-            }
-        }
-        else -> {
-            if (!backStack.contains(route)) {
-                backStack.add(route)
-            }
-        }
-    }
-}
-
-/**
- * Ex. Use in Nav drawer -
- * if (backStack.isItHome()) {
- * Set Hamburger IconButton
- * } else {
- * Set Back Arrow IconButton
- * }
- */
-fun NavBackStack<NavKey>.isItHome(): Boolean {
-    val backStack = this
-    return backStack.size == 1 && backStack.first() == Route.Home
 }
 
 

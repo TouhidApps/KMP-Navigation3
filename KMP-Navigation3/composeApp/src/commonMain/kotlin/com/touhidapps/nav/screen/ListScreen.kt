@@ -67,7 +67,7 @@ fun ListScreen() {
     )
 
     Column {
-        Text(text = "List")
+        Text(text = "List of flowers")
         Button(onClick = {
             env.navigate(Route.Back)
         }) {
@@ -88,11 +88,6 @@ fun ListScreen() {
             }
         }
 
-        Button(onClick = {
-            env.navigate(Route.Back)
-        }) {
-            Text("Back")
-        }
     }
 
 }

@@ -46,7 +46,7 @@ fun HomeScreen() {
         Button(onClick = {
             env.navigate(Route.List)
         }) {
-            Text("List Detail (Landscape) ->")
+            Text("List Detail (+Landscape) ->")
         }
         Button(onClick = {
             env.navigate(Route.MyDialog)

@@ -9,6 +9,7 @@ import androidx.compose.animation.togetherWith
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.staticCompositionLocalOf
+import androidx.navigation3.runtime.NavBackStack
 import androidx.navigation3.runtime.NavKey
 import androidx.navigation3.ui.NavDisplay
 import androidx.savedstate.serialization.SavedStateConfiguration
@@ -16,7 +17,7 @@ import kotlinx.serialization.modules.SerializersModule
 import kotlinx.serialization.modules.polymorphic
 
 val LocalNavigator = staticCompositionLocalOf<(Route) -> Unit> {
-    error("Not provided")
+    error("Not provided") // executes error when read before it’s provided
 }
 
 @Immutable
@@ -56,4 +57,39 @@ val navAnimation = NavDisplay.transitionSpec {
 } + NavDisplay.predictivePopTransitionSpec {
     // Slide old content down, revealing the new content in place underneath
     EnterTransition.None togetherWith slideOutVertically(targetOffsetY = { it }, animationSpec = tween(1000))
+}
+
+
+fun NavBackStack<NavKey>.toRoute(route: Route) {
+    val backStack = this
+    when(route) {
+        is Route.Back -> {
+            if (backStack.isNotEmpty()) {
+                backStack.removeLastOrNull()
+            }
+        }
+        is Route.Home -> {
+            if (backStack.isNotEmpty()) {
+                backStack.removeAll { it != Route.Home }
+            }
+        }
+        else -> {
+            if (!backStack.contains(route)) {
+                backStack.add(route)
+            }
+        }
+    }
+}
+
+/**
+ * Ex. Use in Nav drawer -
+ * if (backStack.isItHome()) {
+ * Set Hamburger IconButton
+ * } else {
+ * Set Back Arrow IconButton
+ * }
+ */
+fun NavBackStack<NavKey>.isItHome(): Boolean {
+    val backStack = this
+    return backStack.size == 1 && backStack.first() == Route.Home
 }
